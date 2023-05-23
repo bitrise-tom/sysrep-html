@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>JSON Data</title>
+  <style>
+    .card {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 10px;
+      cursor: pointer;
+    }
+    
+    #system-info {
+      background-color: #f2f2f2;
+      padding: 10px;
+      margin-bottom: 20px;
+    }
+    
+    #system-info pre {
+      white-space: pre-wrap;
+    }
+    
+    #tools-info {
+      margin-bottom: 20px;
+    }
+
+    #modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    #modal-card {
+      background-color: #fff;
+      padding: 20px;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+  </style>
+  <script>
+    function loadJSON() {
+      // Fetch the JSON data
+      fetch('output.json')
+        .then(response => response.json())
+        .then(data => {
+          // Find the section for "system"
+          const systemSection = data.find(item => item.category === 'system');
+          
+          // Check if the section was found
+          if (systemSection) {
+            // Access the "commands" array within the "output" object
+            const systemCommands = systemSection.output.commands;
+            
+            // Display system info above tools info
+            const systemInfoElement = document.getElementById('system-info');
+            systemCommands.forEach(command => {
+              const commandInfo = document.createElement('pre');
+              commandInfo.textContent = command.raw;
+              systemInfoElement.appendChild(commandInfo);
+            });
+          }
+          
+          // Find the section for "tools"
+          const toolsSection = data.find(item => item.category === 'tools');
+          
+          // Check if the section was found
+          if (toolsSection) {
+            // Access the "commands" array within the "output" object
+            const commands = toolsSection.output.commands;
+            
+            // Create card elements for each command
+            const toolsInfoElement = document.getElementById('tools-info');
+            commands.forEach(command => {
+              const card = document.createElement('div');
+              card.classList.add('card');
+              card.textContent = `${command.name}: ${command.version}`;
+              card.addEventListener('click', () => showModal(command));
+              toolsInfoElement.appendChild(card);
+            });
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    }
+    
+   // function showModal(command) {
+   //   // Create and display the modal
+   //   const modal = document.getElementById('modal');
+   //   modal.style.display = 'flex';
+   //   
+   //   // Populate the modal with command information
+   //   const modalContent = document.getElementById('modal-content');
+   //   modalContent.innerHTML = JSON.stringify(command, null, 2);
+   // }
+    function showModal(command) {
+      // Create and display the modal
+      const modal = document.getElementById('modal');
+      modal.style.display = 'flex';
+      
+      // Create the card element
+      const modalCard = document.createElement('div');
+      modalCard.id = 'modal-card';
+      
+      // Create the card content
+      const cardContent = document.createElement('div');
+      cardContent.classList.add('card');
+      cardContent.textContent = `${command.name}: ${command.version}`;
+      modalCard.appendChild(cardContent);
+      
+      // Create the raw output section
+      const rawOutput = document.createElement('pre');
+      rawOutput.textContent = command.raw;
+      modalCard.appendChild(rawOutput);
+      
+      // Append the card to the modal
+      const modalContent = document.getElementById('modal-content');
+      modalContent.innerHTML = '';
+      modalContent.appendChild(modalCard);
+    }
+    
+    function hideModal() {
+      // Hide the modal
+      const modal = document.getElementById('modal');
+      modal.style.display = 'none';
+    }
+    
+    // Close the modal when clicking outside of it
+    window.addEventListener('click', event => {
+      const modal = document.getElementById('modal');
+      if (event.target === modal) {
+        hideModal();
+      }
+    });
+
+    // Close the modal when pressing the Escape key
+    document.addEventListener('keydown', event => {
+      const modal = document.getElementById('modal');
+      if (event.key === 'Escape') {
+        hideModal();
+      }
+    });
+  </script>
+</head>
+<body onload="loadJSON()">
+  <h1>JSON Data</h1>
+  
+  <div id="system-info"></div>
+  
+  <h2>Tools Info</h2>
+  <div id="tools-info"></div>
+  
+  <div id="modal">
+    <div id="modal-content"></div>
+  </div>
+</body>
+</html>
